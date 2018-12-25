@@ -193,6 +193,64 @@ f_ii     10354  0.0  0.0 154704  3840 pts/9    R+   12:43   0:00 ps auxwww
 
 TODO
 
+## Prettyprinting long awk programs
+
+The rule of thumb says you should place AWK program into separate file if is long and unreadable as the oneliner.
+
+```awk
+# 0. text data generation
+$ ps auxwww > /tmp/ps.log
+
+# 1. mimicking tail -n 2 
+# 1.a as not much readable oneliner
+$ awk -v n=2 'BEGIN{arr[-1]=0}{arr[arr[-1]]=$0;arr[-1]++;}END{for(i=arr[-1]-n;i<arr[-1];i++){print arr[i]}}' /tmp/ps.log 
+f_ii     10347  0.0  0.2 470984 21808 ?        S    12:42   0:00 file.so [kdeinit5] file local:/run/user/1000/klauncherXM2152.1.slave-socket local:/run/user/1000/plasmashellXF2247.8.slave-socket
+f_ii     10354  0.0  0.0 154704  3840 pts/9    R+   12:43   0:00 ps auxwww
+
+# 1.b as oneliner on separated lines
+$ awk -v n=2 'BEGIN{arr[-1]=0}
+>                  {arr[arr[-1]]=$0;arr[-1]++;}
+>               END{for(i=arr[-1]-n;i<arr[-1];i++){print arr[i]}}' /tmp/ps.log 
+f_ii     10347  0.0  0.2 470984 21808 ?        S    12:42   0:00 file.so [kdeinit5] file local:/run/user/1000/klauncherXM2152.1.slave-socket local:/run/user/1000/plasmashellXF2247.8.slave-socket
+f_ii     10354  0.0  0.0 154704  3840 pts/9    R+   12:43   0:00 ps auxwww
+
+# 1.c oneliner prettyprinted by "GNU AWK profiler"
+$ gawk -p -v n=2 'BEGIN{arr[-1]=0}{arr[arr[-1]]=$0;arr[-1]++;}END{for(i=arr[-1]-n;i<arr[-1];i++){print arr[i]}}' /tmp/ps.log 
+f_ii     10347  0.0  0.2 470984 21808 ?        S    12:42   0:00 file.so [kdeinit5] file local:/run/user/1000/klauncherXM2152.1.slave-socket local:/run/user/1000/plasmashellXF2247.8.slave-socket
+f_ii     10354  0.0  0.0 154704  3840 pts/9    R+   12:43   0:00 ps auxwww
+$ cat awkprof.out 
+        # gawk profile, created Tue Dec 25 14:48:02 2018
+
+        # BEGIN block(s)
+
+        BEGIN {
+     1          arr[-1] = 0
+        }
+
+        # Rule(s)
+
+   261  {
+   261          arr[arr[-1]] = $0
+   261          arr[-1]++
+        }
+
+        # END block(s)
+
+        END {
+     2          for (i = arr[-1] - n; i < arr[-1]; i++) {
+     2                  print arr[i]
+                }
+        }
+# 1.d program in separated file
+$ awk -v n=2 -f tail.awk /tmp/ps.log 
+f_ii     10347  0.0  0.2 470984 21808 ?        S    12:42   0:00 file.so [kdeinit5] file local:/run/user/1000/klauncherXM2152.1.slave-socket local:/run/user/1000/plasmashellXF2247.8.slave-socket
+f_ii     10354  0.0  0.0 154704  3840 pts/9    R+   12:43   0:00 ps auxwww
+```
+### Lesson learned:
+ * AWK program should be inserted in separate `*.awk` file to avoid poor readability
+ * prettyprinting of badly formatted program is posible via GNU AWK "profiling" feature `gawk -p`
+
+
 ## Troubleshooting awk programs
 
 TODO
