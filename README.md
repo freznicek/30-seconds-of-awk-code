@@ -8,13 +8,13 @@
 
 ## Table of contents
  * [choosing right implementation](#choosing-right-implementation)
- * [basic I/O](basic-io)
- * [replacing grep](replacing-grep)
- * [replacing sed](replacing-sed)
- * [replacing head and tail](replacing-head-and-tail)
- * [performing math](performing-math)
- * [prettyprinting long awk programs](prettyprinting-long-awk-programs)
- * [troubleshooting awk programs](troubleshooting-awk-programs)
+ * [basic I/O](#basic-io)
+ * [replacing grep](#replacing-grep)
+ * [replacing sed](#replacing-sed)
+ * [replacing head and tail](#replacing-head-and-tail)
+ * [performing math](#performing-math)
+ * [prettyprinting long awk programs](#prettyprinting-long-awk-programs)
+ * [troubleshooting awk programs](#troubleshooting-awk-programs)
 
 ## Choosing right implementation
 
