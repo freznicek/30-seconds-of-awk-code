@@ -151,8 +151,42 @@ TODO
 
 ## Replacing `head` and `tail`
 
+```awk
+# 0. text data generation
+$ ps auxwww > /tmp/ps.log
 
-TODO
+# 1. essential head
+$ head -3 /tmp/ps.log 
+USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root         1  0.0  0.1 194320  8872 ?        Ss   11:44   0:02 /usr/lib/systemd/systemd --switched-root --system --deserialize 21
+root         2  0.0  0.0      0     0 ?        S    11:44   0:00 [kthreadd]
+
+# 1.awk mimicking the head command
+$ awk 'NR<=3 {print}' /tmp/ps.log
+USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root         1  0.0  0.1 194320  8872 ?        Ss   11:44   0:02 /usr/lib/systemd/systemd --switched-root --system --deserialize 21
+root         2  0.0  0.0      0     0 ?        S    11:44   0:00 [kthreadd]
+
+
+# 2. basic tail
+$ tail -n 2 /tmp/ps.log 
+f_ii     10347  0.0  0.2 470984 21808 ?        S    12:42   0:00 file.so [kdeinit5] file local:/run/user/1000/klauncherXM2152.1.slave-socket local:/run/user/1000/plasmashellXF2247.8.slave-socket
+f_ii     10354  0.0  0.0 154704  3840 pts/9    R+   12:43   0:00 ps auxwww
+
+# 2.awk performing the same in tail is much less straightforward
+$ awk -v n=2 'BEGIN{arr[-1]=0}
+>                  {arr[arr[-1]]=$0;arr[-1]++;}
+>               END{for(i=arr[-1]-n;i<arr[-1];i++){print arr[i]}}' /tmp/ps.log 
+f_ii     10347  0.0  0.2 470984 21808 ?        S    12:42   0:00 file.so [kdeinit5] file local:/run/user/1000/klauncherXM2152.1.slave-socket local:/run/user/1000/plasmashellXF2247.8.slave-socket
+f_ii     10354  0.0  0.0 154704  3840 pts/9    R+   12:43   0:00 ps auxwww
+
+```
+### Lesson learned:
+ * variable `NR` contains number of processed record (acting as record/line number)
+ * passing an awk variable from command-line is possible via `-v variable-name=variable-value`
+ * associative arrays are fully supported
+ * `BEGIN{}` rule is evaluated *before* first line is read
+ * `END{}` rule is evaluated *after* last line is processed
 
 ## Performing math
 
