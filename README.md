@@ -7,13 +7,14 @@
 **Note**:- This is in no way affiliated with the original [30-seconds-of-code](https://github.com/Chalarangelo/30-seconds-of-code/).
 
 ## Table of contents
- * [choosing right implementation]()
- * [basic I/O]()
- * [replacing grep]()
- * [replacing sed]()
- * [replacing head and tail]()
- * [performing math]()
- * [troubleshooting awk programs]()
+ * [choosing right implementation](#choosing-right-implementation)
+ * [basic I/O](basic-io)
+ * [replacing grep](replacing-grep)
+ * [replacing sed](replacing-sed)
+ * [replacing head and tail](replacing-head-and-tail)
+ * [performing math](performing-math)
+ * [prettyprinting long awk programs](prettyprinting-long-awk-programs)
+ * [troubleshooting awk programs](troubleshooting-awk-programs)
 
 ## Choosing right implementation
 
