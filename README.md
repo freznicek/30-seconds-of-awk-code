@@ -26,7 +26,7 @@ There are three modern implementations to consider:
  * moderate performance
 
 ### Mike Brennan's and Thomas E. Dickey's AWK known as `mawk`
- * best performance
+ * best performance ([example](https://brenocon.com/blog/2009/09/dont-mawk-awk-the-fastest-and-most-elegant-big-data-munging-language/))
 
 ### Busybox AWK known as `busybox awk`
  * smallest footprint
@@ -34,7 +34,7 @@ There are three modern implementations to consider:
 
 ### Lesson learned:
  * there are multiple AWK implementations
- * stick to the modern implementations `gawk`, `mawk` or `busybox awk`
+ * stick to the modern implementations `gawk`, `mawk` eventually `busybox awk`
 
 ## Basic I/O
 AWK is able to read and write text streams very easily
@@ -95,25 +95,25 @@ avahi      688  0.0  0.0  27980   228 ?        S    11:45   0:00 avahi-daemon: c
 ```awk
 # 1. let's have multiple `gvfs-udisks2-volume-monitor+` processes
 $ grep -F "gvfs-udisks2-volume-monitor+" /tmp/ps.log
-gdm       1629  0.0  0.1 413944  8428 tty1     Sl  11:46   0:00 /usr/libexec/gvfs-udisks2-volume-monitor+
-gdm       1630  0.0  0.1 413940  8420 tty1     Sl  11:46   0:00 /usr/libexec/gvfs-udisks2-volume-monitor+
-f_ii      2711  0.0  0.1 414288  8564 tty2     Sl  11:46   0:00 /usr/libexec/gvfs-udisks2-volume-monitor+
+gdm       1629  0.0  0.1 413944  8428 tty1     Sl  11:46   0:00 /qbin/gvfs-udisks2-volume-monitor+
+gdm       1630  0.0  0.1 413940  8420 tty1     Sl  11:46   0:00 /qbin/gvfs-udisks2-volume-monitor+
+f_ii      2711  0.0  0.1 414288  8564 tty2     Sl  11:46   0:00 /qbin/gvfs-udisks2-volume-monitor+
 
 # 2. we need to select the *first one* running under user `gdm` (silly & fragile solution relying on `gdm` one comes first)
 $ grep -F "gvfs-udisks2-volume-monitor+" -m 1 /tmp/ps.log
-gdm       1629  0.0  0.1 413944  8428 tty1     Sl  11:46   0:00 /usr/libexec/gvfs-udisks2-volume-monitor+
+gdm       1629  0.0  0.1 413944  8428 tty1     Sl  11:46   0:00 /qbin/gvfs-udisks2-volume-monitor+
 
 # 3. we need to select the one running under user gdm (more correct solution)
 $ grep -F "gvfs-udisks2-volume-monitor+" /tmp/ps.log | grep -E -m 1 "^gdm[ \t]+"
-gdm       1629  0.0  0.1 413944  8428 tty1     Sl  11:46   0:00 /usr/libexec/gvfs-udisks2-volume-monitor+
+gdm       1629  0.0  0.1 413944  8428 tty1     Sl  11:46   0:00 /qbin/gvfs-udisks2-volume-monitor+
 
 # 4. naive implementation of the grep command 2. would be
 $ awk 'index($0,"gvfs-udisks2-volume-monitor+") > 0 {print $0;exit(0);}' /tmp/ps.log
-gdm       1629  0.0  0.1 413944  8428 tty1     Sl  11:46   0:00 /usr/libexec/gvfs-udisks2-volume-monitor+
+gdm       1629  0.0  0.1 413944  8428 tty1     Sl  11:46   0:00 /qbin/gvfs-udisks2-volume-monitor+
 
 # 5. more correct implementation of the grep command 3. is
 $ awk '$1 == "gdm" && index($0,"gvfs-udisks2-volume-monitor+") > 0 {print $0;exit(0);}' /tmp/ps.log
-gdm       1629  0.0  0.1 413944  8428 tty1     Sl  11:46   0:00 /usr/libexec/gvfs-udisks2-volume-monitor+
+gdm       1629  0.0  0.1 413944  8428 tty1     Sl  11:46   0:00 /qbin/gvfs-udisks2-volume-monitor+
 ```
 
 ### multifile grepping `grep -E mypattern <file-glob>`
@@ -171,15 +171,15 @@ root         2  0.0  0.0      0     0 ?        S    11:44   0:00 [kthreadd]
 
 # 2. basic tail
 $ tail -n 2 /tmp/ps.log 
-f_ii     10347  0.0  0.2 470984 21808 ?        S    12:42   0:00 file.so [kdeinit5] file local:/run/user/1000/klauncherXM2152.1.slave-socket local:/run/user/1000/plasmashellXF2247.8.slave-socket
-f_ii     10354  0.0  0.0 154704  3840 pts/9    R+   12:43   0:00 ps auxwww
+f_ii     10347  0.0  0.2 470984 21808 ?        S    12:42   0:00 file.so [kdeinit5] file local:...
+f_ii     10354  0.0  0.0 154704  3840 pts9    R+   12:43   0:00 ps auxwww
 
 # 2.awk performing the same in tail is much less straightforward
 $ awk -v n=2 'BEGIN{arr[-1]=0}
 >                  {arr[arr[-1]]=$0;arr[-1]++;}
 >               END{for(i=arr[-1]-n;i<arr[-1];i++){print arr[i]}}' /tmp/ps.log 
-f_ii     10347  0.0  0.2 470984 21808 ?        S    12:42   0:00 file.so [kdeinit5] file local:/run/user/1000/klauncherXM2152.1.slave-socket local:/run/user/1000/plasmashellXF2247.8.slave-socket
-f_ii     10354  0.0  0.0 154704  3840 pts/9    R+   12:43   0:00 ps auxwww
+f_ii     10347  0.0  0.2 470984 21808 ?        S    12:42   0:00 file.so [kdeinit5] file local:...
+f_ii     10354  0.0  0.0 154704  3840 pts9    R+   12:43   0:00 ps auxwww
 
 ```
 ### Lesson learned:
@@ -191,8 +191,85 @@ f_ii     10354  0.0  0.0 154704  3840 pts/9    R+   12:43   0:00 ps auxwww
 
 ## Performing math
 
+### Fibonacci sequence
 
-TODO
+```awk
+# fibo.awk
+
+# actions before reading text stream
+BEGIN{
+  for(i=0; i<(ARGC > 1 ? ARGV[1] : 10); i++)
+    print(fibo_recursive(i));
+}
+
+# local functions
+function fibo_recursive(in_val) {
+    return( in_val<=1 ? in_val : fibo_recursive(in_val-1) + fibo_recursive(in_val-2));
+}
+```
+An execution results in Fibonacci sequence:
+```
+$ awk -f ~/tmp/fibo.awk 10
+0
+1
+1
+2
+3
+5
+8
+13
+21
+34
+```
+
+### Text stream statistics
+
+```awk
+# wordstats.awk
+
+# actions before reading text stream - initiate counters
+BEGIN{
+    wcnt = bllinecnt = 0;
+    wmin = wmax = "";
+}
+
+# at every line ruleblock
+{
+    # count the words
+    wcnt += NF;
+    # count blank/empty lines
+    if (NF == 0)
+        bllinecnt++;
+    # update maximum and minimum word count variables
+    if( (NF>(wmax+0)) || (NR==1))
+        wmax = NF;
+    if( (NF<(wmin+0)) || (NR==1))
+        wmin = NF;
+}
+
+# final text stream statistics
+END{
+    printf("Total %d words on %d lines. (average/min/max %.2f/%s/%s words per line; %d blank lines)\n",
+           wcnt, NR, wcnt / NR, wmin, wmax, bllinecnt);
+}
+```
+The executions:
+```
+$ echo -e "A B C\nA B" | awk -f ~/tmp/wordstats.awk 
+Total 5 words on 2 lines. (average/min/max 2.50/2/3 words per line; 0 blank lines)
+$ ps auxwww | awk -f ~/tmp/wordstats.awk
+Total 3458 words on 270 lines. (average/min/max 12.81/11/26 words per line; 0 blank lines)
+$ curl -s 'https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt' | awk -f ~/tmp/wordstats.awk
+Total 4381 words on 502 lines. (average/min/max 8.73/0/15 words per line; 75 blank lines)
+```
+
+### Lesson learned:
+ * parsing command-line arguments are possible via C-like variables
+   * count of arguments `ARGC` and
+   * individual arguments `ARGV` array
+ * AWK allow functions to be declared either on the beginning or at the end of awk source code
+ * `NF` variable contains number of words (awk fields) on line (awk record)
+ * ternary operator `<cond> ? <when-true> : <when-false>` is fully available
 
 ## Prettyprinting long awk programs
 
@@ -205,19 +282,19 @@ $ ps auxwww > /tmp/ps.log
 # 1. mimicking tail -n 2 
 # 1.a as not much readable oneliner
 $ awk -v n=2 'BEGIN{arr[-1]=0}{arr[arr[-1]]=$0;arr[-1]++;}END{for(i=arr[-1]-n;i<arr[-1];i++){print arr[i]}}' /tmp/ps.log 
-f_ii     10347  0.0  0.2 470984 21808 ?        S    12:42   0:00 file.so [kdeinit5] file local:/run/user/1000/klauncherXM2152.1.slave-socket local:/run/user/1000/plasmashellXF2247.8.slave-socket
+f_ii     10347  0.0  0.2 470984 21808 ?        S    12:42   0:00 file.so [kdeinit5] file local:...
 f_ii     10354  0.0  0.0 154704  3840 pts/9    R+   12:43   0:00 ps auxwww
 
 # 1.b as oneliner on separated lines
 $ awk -v n=2 'BEGIN{arr[-1]=0}
 >                  {arr[arr[-1]]=$0;arr[-1]++;}
 >               END{for(i=arr[-1]-n;i<arr[-1];i++){print arr[i]}}' /tmp/ps.log 
-f_ii     10347  0.0  0.2 470984 21808 ?        S    12:42   0:00 file.so [kdeinit5] file local:/run/user/1000/klauncherXM2152.1.slave-socket local:/run/user/1000/plasmashellXF2247.8.slave-socket
+f_ii     10347  0.0  0.2 470984 21808 ?        S    12:42   0:00 file.so [kdeinit5] file local:...
 f_ii     10354  0.0  0.0 154704  3840 pts/9    R+   12:43   0:00 ps auxwww
 
 # 1.c oneliner prettyprinted by "GNU AWK profiler"
 $ gawk -p -v n=2 'BEGIN{arr[-1]=0}{arr[arr[-1]]=$0;arr[-1]++;}END{for(i=arr[-1]-n;i<arr[-1];i++){print arr[i]}}' /tmp/ps.log 
-f_ii     10347  0.0  0.2 470984 21808 ?        S    12:42   0:00 file.so [kdeinit5] file local:/run/user/1000/klauncherXM2152.1.slave-socket local:/run/user/1000/plasmashellXF2247.8.slave-socket
+f_ii     10347  0.0  0.2 470984 21808 ?        S    12:42   0:00 file.so [kdeinit5] file local:...
 f_ii     10354  0.0  0.0 154704  3840 pts/9    R+   12:43   0:00 ps auxwww
 $ cat awkprof.out 
         # gawk profile, created Tue Dec 25 14:48:02 2018
@@ -244,7 +321,7 @@ $ cat awkprof.out
         }
 # 1.d program in separated file
 $ awk -v n=2 -f tail.awk /tmp/ps.log 
-f_ii     10347  0.0  0.2 470984 21808 ?        S    12:42   0:00 file.so [kdeinit5] file local:/run/user/1000/klauncherXM2152.1.slave-socket local:/run/user/1000/plasmashellXF2247.8.slave-socket
+f_ii     10347  0.0  0.2 470984 21808 ?        S    12:42   0:00 file.so [kdeinit5] file local:...
 f_ii     10354  0.0  0.0 154704  3840 pts/9    R+   12:43   0:00 ps auxwww
 ```
 ### Lesson learned:
@@ -254,8 +331,10 @@ f_ii     10354  0.0  0.0 154704  3840 pts/9    R+   12:43   0:00 ps auxwww
 
 ## Troubleshooting awk programs
 
-TODO
+To troubleshoot not functional AWK program you should have GNU AWK in "profiling" mode (`gawk -p`), generated execution summary helps to understand what is wrong.
 
-
+### Lesson learned:
+ * use GNU AWK "profiling" feature `gawk -p` to uncover issues with your awk code
+ * if you do not have GNU AWK you need to add custom debugging messages
 
 
